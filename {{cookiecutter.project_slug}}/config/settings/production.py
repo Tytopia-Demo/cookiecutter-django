@@ -339,78 +339,29 @@ INSTALLED_APPS = ["collectfasta", *INSTALLED_APPS]
 # https://docs.djangoproject.com/en/dev/ref/settings/#logging
 # See https://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+from {{ cookiecutter.project_slug }}.utils.logging import get_logging_config
+
+# Production uses structured JSON logging for better log aggregation and analysis
+LOGGING = get_logging_config(
+    environment="production",
+    log_level=env("DJANGO_LOG_LEVEL", default="INFO"),
+    use_json=True,  # Enable JSON formatting for production
+)
+
 {% if cookiecutter.use_sentry == 'n' -%}
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error when DEBUG=False.
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
-    "formatters": {
-        "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
-        },
-    },
-    "handlers": {
-        "mail_admins": {
-            "level": "ERROR",
-            "filters": ["require_debug_false"],
-            "class": "django.utils.log.AdminEmailHandler",
-        },
-        "console": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
-        },
-    },
-    "root": {"level": "INFO", "handlers": ["console"]},
-    "loggers": {
-        "django.request": {
-            "handlers": ["mail_admins"],
-            "level": "ERROR",
-            "propagate": True,
-        },
-        "django.security.DisallowedHost": {
-            "level": "ERROR",
-            "handlers": ["console", "mail_admins"],
-            "propagate": True,
-        },
-    },
+# Add mail_admins handler for ERROR notifications when not using Sentry
+LOGGING["filters"]["require_debug_false"] = {"()": "django.utils.log.RequireDebugFalse"}
+LOGGING["handlers"]["mail_admins"] = {
+    "level": "ERROR",
+    "filters": ["require_debug_false"],
+    "class": "django.utils.log.AdminEmailHandler",
+}
+LOGGING["loggers"]["django.request"] = {
+    "handlers": ["mail_admins"],
+    "level": "ERROR",
+    "propagate": True,
 }
 {% else %}
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "formatters": {
-        "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
-        },
-    },
-    "handlers": {
-        "console": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
-        },
-    },
-    "root": {"level": "INFO", "handlers": ["console"]},
-    "loggers": {
-        "django.db.backends": {
-            "level": "ERROR",
-            "handlers": ["console"],
-            "propagate": False,
-        },
-        # Errors logged by the SDK itself
-        "sentry_sdk": {"level": "ERROR", "handlers": ["console"], "propagate": False},
-        "django.security.DisallowedHost": {
-            "level": "ERROR",
-            "handlers": ["console"],
-            "propagate": False,
-        },
-    },
-}
-
 # Sentry
 # ------------------------------------------------------------------------------
 SENTRY_DSN = env("SENTRY_DSN")

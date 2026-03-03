@@ -121,5 +121,17 @@ CELERY_TASK_EAGER_PROPAGATES = True
 WEBPACK_LOADER["DEFAULT"]["CACHE"] = not DEBUG
 
 {%- endif %}
+
+# LOGGING
+# ------------------------------------------------------------------------------
+# Use human-readable logging for local development
+from {{ cookiecutter.project_slug }}.utils.logging import get_logging_config
+
+LOGGING = get_logging_config(
+    environment="local",
+    log_level="DEBUG",
+    use_json=False,  # Use plain text format for easier reading during development
+)
+
 # Your stuff...
 # ------------------------------------------------------------------------------
