@@ -14,6 +14,15 @@ License: {{cookiecutter.open_source_license}}
 
 Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings.html).
 
+## Health Check Endpoints
+
+This project includes standardized health and readiness endpoints for monitoring and orchestration:
+
+- **Health Check**: `GET /health/` - Returns 200 OK when service is running and dependencies are available
+- **Readiness Check**: `GET /health/ready/` - Returns 200 OK when service is ready to handle requests
+
+Both endpoints return JSON responses with status information and are accessible without authentication. See the [Health Checks documentation](docs/health-checks.rst) for detailed information about configuration, usage with Kubernetes/Docker, and extending health checks.
+
 ## Basic Commands
 
 ### Setting Up Your Users

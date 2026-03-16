@@ -102,6 +102,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "{{ cookiecutter.project_slug }}.users",
+    "{{ cookiecutter.project_slug }}.health.apps.HealthConfig",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -280,6 +281,13 @@ LOGGING = {
         },
     },
     "root": {"level": "INFO", "handlers": ["console"]},
+    "loggers": {
+        "{{ cookiecutter.project_slug }}.health": {
+            "level": "WARNING",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+    },
 }
 
 {% if cookiecutter.use_celery == 'y' -%}

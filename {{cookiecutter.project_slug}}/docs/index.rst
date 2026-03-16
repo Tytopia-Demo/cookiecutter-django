@@ -13,6 +13,7 @@ Welcome to {{ cookiecutter.project_name }}'s documentation!
    howto{% if cookiecutter.editor == 'PyCharm' %}
    pycharm/configuration{% endif %}
    users
+   health-checks
 
 
 
