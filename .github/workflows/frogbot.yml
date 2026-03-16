@@ -18,6 +18,7 @@ permissions:
 jobs:
   frogbot-scan:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         branch: ["master"]

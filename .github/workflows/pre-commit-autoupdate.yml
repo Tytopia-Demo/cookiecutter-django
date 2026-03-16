@@ -20,6 +20,7 @@ jobs:
       pull-requests: write # for peter-evans/create-pull-request to create a PR
 
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

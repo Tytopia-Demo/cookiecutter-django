@@ -16,6 +16,7 @@ jobs:
       contents: write # for stefanzweifel/git-auto-commit-action to push code in repo
 
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 

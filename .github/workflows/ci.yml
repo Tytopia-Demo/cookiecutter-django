@@ -21,7 +21,11 @@ jobs:
 
     name: "pytest ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
+      - name: Start job timer
+        id: timer
+        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -31,6 +35,13 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run tests
         run: pytest -n auto tests
+      - name: Report job execution time
+        if: always()
+        run: |
+          end_time=$(date +%s)
+          duration=$((end_time - ${{ steps.timer.outputs.start_time }}))
+          echo "Job execution time: ${duration}s"
+          echo "execution_time_seconds=${duration}" >> $GITHUB_STEP_SUMMARY
 
   docker:
     strategy:
@@ -48,11 +59,15 @@ jobs:
 
     name: "Docker ${{ matrix.script.name }}"
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
       DOCKER_BUILDKIT: 1
       COMPOSE_DOCKER_CLI_BUILD: 1
 
     steps:
+      - name: Start job timer
+        id: timer
+        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -62,6 +77,13 @@ jobs:
         run: pip install -r requirements.txt
       - name: Docker ${{ matrix.script.name }}
         run: sh tests/test_docker.sh ${{ matrix.script.args }}
+      - name: Report job execution time
+        if: always()
+        run: |
+          end_time=$(date +%s)
+          duration=$((end_time - ${{ steps.timer.outputs.start_time }}))
+          echo "Job execution time: ${duration}s"
+          echo "execution_time_seconds=${duration}" >> $GITHUB_STEP_SUMMARY
 
   bare:
     strategy:
@@ -79,6 +101,7 @@ jobs:
 
     name: "Bare metal ${{ matrix.script.name }}"
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     services:
       redis:
         image: redis:5.0
@@ -97,6 +120,9 @@ jobs:
       DATABASE_URL: "postgres://postgres:postgres@localhost:5432/postgres"
 
     steps:
+      - name: Start job timer
+        id: timer
+        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -113,3 +139,10 @@ jobs:
           node-version: "20"
       - name: Bare Metal ${{ matrix.script.name }}
         run: sh tests/test_bare.sh ${{ matrix.script.args }}
+      - name: Report job execution time
+        if: always()
+        run: |
+          end_time=$(date +%s)
+          duration=$((end_time - ${{ steps.timer.outputs.start_time }}))
+          echo "Job execution time: ${duration}s"
+          echo "execution_time_seconds=${duration}" >> $GITHUB_STEP_SUMMARY
