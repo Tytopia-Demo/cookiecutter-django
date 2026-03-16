@@ -165,6 +165,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "{{ cookiecutter.project_slug }}.utils.logging_middleware.LoggingContextMiddleware",
 ]
 
 # STATIC
@@ -268,6 +269,22 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": "%(asctime)s %(levelname)s %(name)s %(message)s %(pathname)s %(lineno)d %(funcName)s %(process)d %(thread)d",
+            "rename_fields": {
+                "levelname": "level",
+                "asctime": "timestamp",
+                "name": "logger",
+                "pathname": "file",
+                "lineno": "line",
+                "funcName": "function",
+            },
+            "static_fields": {
+                "service": "{{ cookiecutter.project_slug }}",
+                "environment": env("ENVIRONMENT", default="development"),
+            },
+        },
         "verbose": {
             "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
         },
@@ -276,7 +293,7 @@ LOGGING = {
         "console": {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "json",
         },
     },
     "root": {"level": "INFO", "handlers": ["console"]},

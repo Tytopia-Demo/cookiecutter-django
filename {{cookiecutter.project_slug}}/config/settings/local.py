@@ -121,5 +121,42 @@ CELERY_TASK_EAGER_PROPAGATES = True
 WEBPACK_LOADER["DEFAULT"]["CACHE"] = not DEBUG
 
 {%- endif %}
+# LOGGING
+# ------------------------------------------------------------------------------
+# Override base logging configuration for local development
+# Use human-readable format in development, JSON in production
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(levelname)s %(asctime)s %(name)s %(message)s [%(pathname)s:%(lineno)d]",
+        },
+        "simple": {
+            "format": "%(levelname)s %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {"level": "INFO", "handlers": ["console"]},
+    "loggers": {
+        "django.db.backends": {
+            "level": "DEBUG" if env.bool("DJANGO_LOG_SQL", default=False) else "INFO",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        "{{ cookiecutter.project_slug }}": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+    },
+}
+
 # Your stuff...
 # ------------------------------------------------------------------------------

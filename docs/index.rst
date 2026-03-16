@@ -17,6 +17,7 @@ Contents
    developing-locally
    developing-locally-docker
    settings
+   logging
    linters
    testing
    document

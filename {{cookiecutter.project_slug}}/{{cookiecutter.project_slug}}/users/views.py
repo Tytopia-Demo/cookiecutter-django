@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import QuerySet
@@ -8,6 +10,8 @@ from django.views.generic import RedirectView
 from django.views.generic import UpdateView
 
 from {{ cookiecutter.project_slug }}.users.models import User
+
+logger = logging.getLogger(__name__)
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):
@@ -36,6 +40,17 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     def get_object(self, queryset: QuerySet | None=None) -> User:
         assert self.request.user.is_authenticated  # type guard
         return self.request.user
+
+    def form_valid(self, form):
+        """Log user profile updates with structured context."""
+        logger.info(
+            "User profile updated",
+            extra={
+                "user_id": self.request.user.pk,
+                "fields_updated": list(form.changed_data),
+            }
+        )
+        return super().form_valid(form)
 
 
 user_update_view = UserUpdateView.as_view()

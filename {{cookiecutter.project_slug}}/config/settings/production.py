@@ -340,16 +340,31 @@ INSTALLED_APPS = ["collectfasta", *INSTALLED_APPS]
 # See https://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
 {% if cookiecutter.use_sentry == 'n' -%}
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error when DEBUG=False.
+import socket
+
+# Production logging with structured JSON format
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
     "formatters": {
-        "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": "%(asctime)s %(levelname)s %(name)s %(message)s %(pathname)s %(lineno)d %(funcName)s %(process)d %(thread)d %(request_id)s %(user_id)s",
+            "rename_fields": {
+                "levelname": "level",
+                "asctime": "timestamp",
+                "name": "logger",
+                "pathname": "file",
+                "lineno": "line",
+                "funcName": "function",
+            },
+            "static_fields": {
+                "service": "{{ cookiecutter.project_slug }}",
+                "environment": env("ENVIRONMENT", default="production"),
+                "hostname": socket.gethostname(),
+                "version": "{{ cookiecutter.version }}",
+            },
         },
     },
     "handlers": {
@@ -359,39 +374,62 @@ LOGGING = {
             "class": "django.utils.log.AdminEmailHandler",
         },
         "console": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "json",
         },
     },
     "root": {"level": "INFO", "handlers": ["console"]},
     "loggers": {
         "django.request": {
-            "handlers": ["mail_admins"],
+            "handlers": ["mail_admins", "console"],
             "level": "ERROR",
-            "propagate": True,
+            "propagate": False,
         },
         "django.security.DisallowedHost": {
             "level": "ERROR",
             "handlers": ["console", "mail_admins"],
-            "propagate": True,
+            "propagate": False,
+        },
+        "{{ cookiecutter.project_slug }}": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
         },
     },
 }
 {% else %}
+import socket
+
+# Production logging with structured JSON format (Sentry enabled)
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": True,
     "formatters": {
-        "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": "%(asctime)s %(levelname)s %(name)s %(message)s %(pathname)s %(lineno)d %(funcName)s %(process)d %(thread)d %(request_id)s %(user_id)s",
+            "rename_fields": {
+                "levelname": "level",
+                "asctime": "timestamp",
+                "name": "logger",
+                "pathname": "file",
+                "lineno": "line",
+                "funcName": "function",
+            },
+            "static_fields": {
+                "service": "{{ cookiecutter.project_slug }}",
+                "environment": env("ENVIRONMENT", default="production"),
+                "hostname": socket.gethostname(),
+                "version": "{{ cookiecutter.version }}",
+            },
         },
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "json",
         },
     },
     "root": {"level": "INFO", "handlers": ["console"]},
@@ -406,6 +444,11 @@ LOGGING = {
         "django.security.DisallowedHost": {
             "level": "ERROR",
             "handlers": ["console"],
+            "propagate": False,
+        },
+        "{{ cookiecutter.project_slug }}": {
+            "handlers": ["console"],
+            "level": "INFO",
             "propagate": False,
         },
     },
